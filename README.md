@@ -9,6 +9,26 @@ Everything is **deterministic and enforced by the contract**, not the UI. Built 
 
 ---
 
+## 🚀 Live status (testnet)
+
+| | |
+|---|---|
+| **Contract** | [`potatohot.testnet`](https://testnet.nearblocks.io/accounts/potatohot.testnet) — deployed & initialized |
+| **Token** | `$POTATO` "Kentang Panas", 18 decimals, supply **1,000,000,000** (minted to owner) |
+| **Web app** | https://hot-potato-bomb-five.vercel.app (set `MODE: LIVE`) |
+| **RPC** | `https://near-testnet.drpc.org` (official `rpc.testnet.near.org` is rate-limited / CORS-blocked from browsers) |
+| **Wallet** | MyNearWallet testnet (`https://testnet.mynearwallet.com`) |
+
+Re-deploy after a contract change (from `web/`, needs a throwaway full-access key authorized on the account):
+```
+cd contract && cargo build --target wasm32-unknown-unknown --release
+cd ../web && node genkey.mjs potatohot.testnet   # print authorize URL -> approve in wallet
+node deploy.mjs                                   # deploy wasm + new() + verify views
+```
+New players need $POTATO: the **first** LIVE action auto-runs `storage_deposit(faucet)` which drips **100,000** $POTATO (testnet), then each round debits the configurable **buy-in (1000)**.
+
+---
+
 ## TL;DR for the reviewer (AI or human)
 
 | I want to… | Do this | You'll see |
@@ -16,7 +36,7 @@ Everything is **deterministic and enforced by the contract**, not the UI. Built 
 | Play instantly, no wallet | `cd web && npm i && npm run dev`, open the preview → it's in **MODE: DEMO** | Pixel-arcade CRT dashboard, round 1 with a live fuse |
 | Watch an explosion | In DEMO, wait for the timer to hit 0 (fuse 15s by default) | **"BOOM!"** banner + red flash + screen-shake; survivor pot grows |
 | Pass the bomb | Tap another player's row in the Arena (when it's on you) | Bomb moves, that player's row turns "holding" |
-| Defuse | Click **DEFUSE** while holding | Round closes; you forfeit your 10; survivors split the pot |
+| Defuse | Click **DEFUSE** while holding | Round closes; you forfeit your buy-in (1000); survivors split the pot |
 | Play on-chain (LIVE) | Deploy to testnet (below), set `VITE_CONTRACT_ID`, click **MODE: LIVE** | The *same* dashboard now reads real contract state and sends real transactions |
 | Prove it's on-chain | Click the **explorer link** in the live ticker | Your `join_round` / `pass_bomb` / `finalize_round` transactions, real balances |
 
