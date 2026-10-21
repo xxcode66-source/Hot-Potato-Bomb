@@ -1,0 +1,27 @@
+# deps / build
+node_modules/
+dist/
+build/
+target/
+*.wasm
+
+# near
+neardev/
+contract/abi/
+credentials.json
+account_keys.json
+
+# env / secrets — JANGAN PERNAH COMMIT
+.env
+.env.local
+.env.*.local
+*.key
+*.pem
+seed.json
+
+# logs / os / editor
+npm-debug.log*
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
