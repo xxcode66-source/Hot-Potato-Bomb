@@ -37,14 +37,15 @@ export interface LiveApi {
 }
 
 function mapToGameState(raw: RawGameState): GameState {
+  const parts = Array.isArray(raw.participants) ? raw.participants : [];
   return {
-    players: raw.participants.map((p) => ({
+    players: parts.map((p) => ({
       id: p.account_id,
       name: shortName(p.account_id),
       balance: tokens(p.balance),
       streak: p.streak,
     })),
-    bombHolder: raw.bomb_holder,
+    bombHolder: raw.bomb_holder ?? null,
     roundNumber: raw.round_number,
     deadline: raw.active ? Date.now() + raw.seconds_left * 1000 : 0,
     phase: raw.active ? "Active" : "Idle",
@@ -92,6 +93,7 @@ export function useLiveGame(enabled: boolean): LiveApi {
     if (!enabled || !CONTRACT_ID) return;
     try {
       const g = await view<RawGameState>("get_game_state");
+      if (!g || typeof g !== "object") throw new Error("empty state");
       if (alive.current) {
         setRaw(g);
         setError("");

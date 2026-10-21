@@ -32,6 +32,12 @@ let _wallet: any = null;
 
 async function getWallet(): Promise<any> {
   if (_wallet) return _wallet;
+  // @near-js/* calls Node's `Buffer.from(...)`; browsers don't define it, so polyfill the
+  // global BEFORE importing near-api-js (otherwise init throws "reading 'from'").
+  if (typeof (globalThis as any).Buffer === "undefined") {
+    const buf: any = await import("buffer");
+    (globalThis as any).Buffer = buf.Buffer;
+  }
   const nearApi = await import("near-api-js");
   const keyStore = new nearApi.keyStores.BrowserLocalStorageKeyStore();
   _near = await nearApi.connect({
@@ -77,18 +83,18 @@ export async function signOut(): Promise<void> {
 }
 
 // ---- raw view via JSON-RPC ----
+/** Read-only view via JSON-RPC (legacy `request_method:"call"` is rejected now → 429/CORS). */
 export async function view<T>(method: string, args: Record<string, unknown> = {}): Promise<T> {
   const body = {
     jsonrpc: "2.0",
     id: "1",
     method: "query",
     params: {
-      request_method: "call",
-      request_data: {
-        account_id: CONTRACT_ID,
-        method_name: method,
-        args_base64: btoa(JSON.stringify(args)),
-      },
+      request_type: "call_function",
+      account_id: CONTRACT_ID,
+      method_name: method,
+      args_base64: btoa(JSON.stringify(args)),
+      finality: "optimistic",
     },
   };
   const res = await fetch(RPC_URL, {
@@ -97,9 +103,16 @@ export async function view<T>(method: string, args: Record<string, unknown> = {}
     body: JSON.stringify(body),
   });
   const j: any = await res.json();
-  if (j.error) throw new Error(j.error.message || JSON.stringify(j.error));
-  const txt = new TextDecoder().decode(new Uint8Array(j.result));
-  return JSON.parse(txt) as T;
+  if (j.error)
+    throw new Error(j.error?.data || j.error?.message || JSON.stringify(j.error));
+  // RPC returns the payload as an array of byte values (or, on some providers, a base64 string).
+  const payload = j.result?.result ?? j.result;
+  let bytes: Uint8Array;
+  if (Array.isArray(payload)) bytes = new Uint8Array(payload);
+  else if (typeof payload === "string")
+    bytes = Uint8Array.from(atob(payload), (c) => c.charCodeAt(0));
+  else throw new Error("RPC: unexpected response");
+  return JSON.parse(new TextDecoder().decode(bytes)) as T;
 }
 
 // ---- action via wallet ----
