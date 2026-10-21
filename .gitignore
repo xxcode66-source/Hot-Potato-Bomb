@@ -11,6 +11,16 @@ contract/abi/
 credentials.json
 account_keys.json
 
+# deploy key / temp tooling artifacts — JANGAN PERNAH COMMIT
+.deploy_key
+.deploy_key.json
+.deploy_account_id
+.near_key.json
+*.deploy_key
+.nearcli_install.log
+.nearlogin.log
+*.log
+
 # env / secrets — JANGAN PERNAH COMMIT
 .env
 .env.local

@@ -6,8 +6,10 @@
 //! offline DEMO bundle never ships the heavy wallet dependency.
 
 const NETWORK_ID = "testnet";
-const RPC_URL = "https://rpc.testnet.near.org";
-const WALLET_URL = "https://wallet.testnet.near.org";
+// Official rpc.testnet.near.org now rate-limits (429) and the legacy wallet.testnet.near.org
+// is retired — use a working RPC + MyNearWallet (the current testnet wallet).
+const RPC_URL = "https://near-testnet.drpc.org";
+const WALLET_URL = "https://testnet.mynearwallet.com";
 const HELPER_URL = "https://helper.testnet.near.org";
 export const CONTRACT_ID: string = (import.meta.env.VITE_CONTRACT_ID as string) || "";
 export const EXPLORER = "https://testnet.nearblocks.io";
